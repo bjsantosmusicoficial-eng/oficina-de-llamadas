@@ -1,0 +1,90 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Oficina de Llamadas</title>
+<style>
+body{margin:0;background:#172338;color:white;font-family:system-ui;text-align:center}
+header{background:#0b1424;padding:18px;font-size:22px;font-weight:bold}
+#oficina{padding:35px 10px;background:linear-gradient(#8299ad 0 35%,#39495b 35% 75%,#9b704a 75%);font-size:50px}
+main{max-width:550px;margin:auto;padding:16px}
+.panel{background:#eaf2ff;color:#142440;border-radius:15px;padding:18px;min-height:140px}
+#dialogo{font-size:17px;line-height:1.5}
+button,input{font:inherit;padding:13px;border-radius:10px;border:0;margin:5px}
+button{background:#2165e8;color:white;font-weight:bold}
+input{width:85%;border:1px solid #aaa}
+.stats{background:#263851;padding:12px;border-radius:12px;margin:12px}
+</style>
+</head>
+<body>
+<header>☎️ OFICINA DE LLAMADAS</header>
+<div id="oficina">🏢 💻 🎧 ☎️ 💻</div>
+<main>
+<div class="stats">💰 Dinero: <b id="dinero">120</b> € · 📞 Llamadas: <b id="llamadas">0</b></div>
+<div class="panel">
+<h2 id="titulo">¡A trabajar!</h2>
+<p id="dialogo">Tu jefe te espera. Llama a un cliente y consigue dinero para mejorar la oficina.</p>
+</div>
+<div>
+<button onclick="llamar()">📞 Llamar a un cliente</button>
+<button onclick="colgar()">☎️ Colgar</button>
+</div>
+<div>
+<input id="respuesta" placeholder="Escribe tu respuesta...">
+<button onclick="responder()">Enviar</button>
+<button onclick="micro()">🎙️ Hablar</button>
+</div>
+<div>
+<button onclick="comprar('Auriculares',75)">🎧 Auriculares · 75 €</button>
+<button onclick="comprar('Cafetera',100)">☕ Cafetera · 100 €</button>
+<button onclick="comprar('Ordenador',150)">💻 Ordenador · 150 €</button>
+</div>
+<p id="estado">Objetivo: consigue 5 llamadas exitosas.</p>
+</main>
+<script>
+let dinero=120,llamadas=0,activo=false,cliente=0;
+const clientes=[
+["María","¡Hola! ¿Me explicas qué ofrece vuestro servicio?"],
+["Javier","Voy con prisa. ¿Cómo puedes ayudarme?"],
+["Lucía","Me preocupa que sea una estafa. ¿Cómo lo compruebo?"],
+["Pablo","Estoy comparando opciones. ¿Qué os hace diferentes?"],
+["Ana","Solo tengo un minuto. ¡Ve al grano!"]
+];
+function voz(t){if("speechSynthesis"in window){speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(t);u.lang="es-ES";speechSynthesis.speak(u)}}
+function decir(t){document.getElementById("dialogo").textContent=t;voz(t)}
+function llamar(){
+ if(activo)return;
+ if(llamadas>=5){decir("¡Has terminado tu turno! Recarga la página para volver a jugar.");return}
+ activo=true;cliente=llamadas%clientes.length;llamadas++;
+ document.getElementById("llamadas").textContent=llamadas;
+ document.getElementById("titulo").textContent="Llamada con "+clientes[cliente][0];
+ decir(clientes[cliente][1]);
+}
+function responder(){
+ if(!activo){decir("Primero pulsa Llamar a un cliente.");return}
+ let t=document.getElementById("respuesta").value.toLowerCase();
+ if(!t.trim())return;
+ let bueno=["hola","ayudar","servicio","explicar","claro","precio","oferta","comprobar","transparencia","calidad","ahorrar","beneficio","opciones","gracias","condiciones","necesitas"];
+ let ok=bueno.some(x=>t.includes(x));
+ activo=false;
+ if(ok){let premio=45;dinero+=premio;document.getElementById("dinero").textContent=dinero;document.getElementById("titulo").textContent="¡Llamada exitosa!";decir("¡Buen trabajo! Has hablado con claridad y respeto. Ganas 45 euros.");}
+ else{document.getElementById("titulo").textContent="Llamada terminada";decir("El cliente no está convencido. Intenta explicar mejor cómo puedes ayudarle.");}
+ document.getElementById("respuesta").value="";
+ document.getElementById("estado").textContent=llamadas>=5?"Turno completado. ¡Buen trabajo!":"Objetivo: consigue 5 llamadas exitosas.";
+}
+function colgar(){activo=false;decir("Llamada finalizada. Puedes llamar a otro cliente.");}
+function comprar(nombre,precio){
+ if(dinero<precio){decir("No tienes suficiente dinero. ¡Haz más llamadas!");return}
+ dinero-=precio;document.getElementById("dinero").textContent=dinero;
+ decir("¡Has comprado "+nombre+"! Tu oficina está mejorando.");
+}
+function micro(){
+ let SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SR){decir("Tu navegador no admite dictado aquí. Escribe tu respuesta en el cuadro.");return}
+ let r=new SR();r.lang="es-ES";r.onresult=e=>{document.getElementById("respuesta").value=e.results[0][0].transcript};r.onerror=()=>decir("No se pudo usar el micrófono. Comprueba los permisos.");r.start();
+}
+</script>
+</body>
+</html>
